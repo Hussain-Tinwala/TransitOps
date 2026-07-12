@@ -117,33 +117,37 @@ export default function TripDispatcherPage() {
     const fuel = prompt("Enter total fuel consumed (Liters):");
     if (!fuel) return;
 
-    await fetch(`/api/trips/${tripId}`, {
+    const res = await fetch(`/api/trips/${tripId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "COMPLETE", finalOdometer: odo, fuelConsumed: fuel })
     });
     
-    // 1. Emit event to all clients
-    socket?.emit("state_changed");
-    
-    // 2. Refresh local state
-    window.location.reload(); 
+    if (res.ok) {
+      socket?.emit("state_changed");
+      setActiveTrips(prev => prev.filter(t => t.id !== tripId)); // Hides it instantly
+      router.refresh();
+    } else {
+      alert("Failed to complete trip.");
+    }
   };
 
   const handleCancel = async (tripId: string) => {
     if (!confirm("Are you sure you want to cancel this trip?")) return;
 
-    await fetch(`/api/trips/${tripId}`, {
+    const res = await fetch(`/api/trips/${tripId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "CANCEL" })
     });
     
-    // 1. Emit event to all clients
-    socket?.emit("state_changed");
-    
-    // 2. Refresh local state
-    window.location.reload();
+    if (res.ok) {
+      socket?.emit("state_changed");
+      setActiveTrips(prev => prev.filter(t => t.id !== tripId)); // Hides it instantly
+      router.refresh();
+    } else {
+      alert("Failed to cancel trip.");
+    }
   };
 
   if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading dispatch terminal...</div>;

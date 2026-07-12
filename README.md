@@ -133,6 +133,252 @@ Next.js App Router.
 
 ---
 
+# Data Flow Architecture
+
+```mermaid
+
+flowchart TB
+
+%% ==========================================================
+%% USERS
+%% ==========================================================
+
+subgraph USERS["👥 Users"]
+FM["Fleet Manager"]
+DP["Dispatcher"]
+SO["Safety Officer"]
+FA["Financial Analyst"]
+end
+
+%% ==========================================================
+%% FRONTEND
+%% ==========================================================
+
+subgraph FRONTEND["🖥️ Next.js 15 Frontend (App Router)"]
+
+LOGIN["Role-Based Login"]
+
+DASH["Dashboard"]
+
+VEH["Vehicle Registry"]
+
+DRV["Driver Registry"]
+
+TRIP["Trip Dispatcher"]
+
+MAIN["Maintenance"]
+
+FUEL["Fuel & Expenses"]
+
+REPORT["Reports & Analytics"]
+
+end
+
+FM --> LOGIN
+DP --> LOGIN
+SO --> LOGIN
+FA --> LOGIN
+
+LOGIN --> DASH
+
+DASH --> VEH
+DASH --> DRV
+DASH --> TRIP
+DASH --> MAIN
+DASH --> FUEL
+DASH --> REPORT
+
+%% ==========================================================
+%% AUTH
+%% ==========================================================
+
+subgraph AUTH["🔐 Authentication & Authorization"]
+
+NEXTAUTH["NextAuth Credentials"]
+
+JWT["JWT Session"]
+
+RBAC["Role-Based Access Control"]
+
+end
+
+LOGIN --> NEXTAUTH
+NEXTAUTH --> JWT
+JWT --> RBAC
+
+%% ==========================================================
+%% SERVER
+%% ==========================================================
+
+subgraph SERVER["⚙️ Next.js API Routes / Server Actions"]
+
+API["API Routes"]
+
+VALID["Input Validation"]
+
+RULES["Business Rule Engine"]
+
+end
+
+RBAC --> API
+
+VEH --> API
+DRV --> API
+TRIP --> API
+MAIN --> API
+FUEL --> API
+
+API --> VALID
+VALID --> RULES
+
+%% ==========================================================
+%% BUSINESS RULES
+%% ==========================================================
+
+subgraph RULESET["Business Rules"]
+
+R1["Registration Number Unique"]
+
+R2["Vehicle Available"]
+
+R3["Driver Available"]
+
+R4["License Not Expired"]
+
+R5["Cargo ≤ Vehicle Capacity"]
+
+R6["Account Lock after 5 Failed Logins"]
+
+end
+
+RULES --> R1
+RULES --> R2
+RULES --> R3
+RULES --> R4
+RULES --> R5
+RULES --> R6
+
+%% ==========================================================
+%% DATABASE
+%% ==========================================================
+
+subgraph DATABASE["🗄️ PostgreSQL + Prisma"]
+
+TX["Prisma \$transaction"]
+
+DB[("PostgreSQL")]
+
+USER["User"]
+
+VEHICLE["Vehicle"]
+
+DRIVER["Driver"]
+
+TRIPS["Trip"]
+
+MAINT["MaintenanceLog"]
+
+FUELLOG["FuelLog"]
+
+EXP["Expense"]
+
+end
+
+RULES --> TX
+
+TX --> DB
+
+DB --- USER
+DB --- VEHICLE
+DB --- DRIVER
+DB --- TRIPS
+DB --- MAINT
+DB --- FUELLOG
+DB --- EXP
+
+%% ==========================================================
+%% TRANSACTION LOGIC
+%% ==========================================================
+
+subgraph TXLOGIC["Atomic Transaction Logic"]
+
+DISPATCH["Dispatch Trip
+
+Vehicle → On Trip
+
+Driver → On Trip"]
+
+COMPLETE["Complete Trip
+
+Vehicle → Available
+
+Driver → Available
+
+Update Odometer
+
+Create FuelLog"]
+
+end
+
+TX --> DISPATCH
+TX --> COMPLETE
+
+%% ==========================================================
+%% REALTIME
+%% ==========================================================
+
+subgraph REALTIME["⚡ Real-Time Synchronization"]
+
+SOCKET["Socket.io Custom Server"]
+
+EVENT["state_changed Event"]
+
+CLIENTS["Connected Clients"]
+
+end
+
+DB --> SOCKET
+
+SOCKET --> EVENT
+
+EVENT --> CLIENTS
+
+CLIENTS --> DASH
+CLIENTS --> VEH
+CLIENTS --> DRV
+CLIENTS --> TRIP
+CLIENTS --> REPORT
+
+%% ==========================================================
+%% ANALYTICS
+%% ==========================================================
+
+subgraph ANALYTICS["📊 Analytics"]
+
+UTIL["Fleet Utilization"]
+
+ROI["ROI"]
+
+COST["Operational Cost"]
+
+CSV["CSV Export"]
+
+end
+
+DB --> UTIL
+DB --> ROI
+DB --> COST
+
+UTIL --> REPORT
+ROI --> REPORT
+COST --> REPORT
+
+REPORT --> CSV
+
+```
+
+---
+
 # Database Design
 
 Database design is the foundation of TransitOps.

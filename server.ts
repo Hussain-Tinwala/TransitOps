@@ -1,4 +1,3 @@
-// server.ts
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
@@ -27,15 +26,22 @@ app.prepare().then(() => {
     addTrailingSlash: false,
   });
 
+  // THIS WAS MISSING: Allows Next.js to proxy WebSocket connections
+  // Allows Next.js to proxy WebSocket connections safely
+  server.on("upgrade", (req, socket, head) => {
+    const { pathname } = parse(req.url!, true);
+    if (pathname === "/api/socket") {
+      io.engine.handleUpgrade(req, socket, head);
+    }
+    // CRITICAL FIX: Do NOT destroy the socket here. 
+    // Next.js needs the other sockets for /_next/webpack-hmr to live-reload the browser!
+  });
+
   io.on("connection", (socket) => {
     console.log("Client connected to Socket.io:", socket.id);
-
-    // When one client updates the database, they emit this.
-    // The server then broadcasts it to EVERYONE ELSE to refresh their screens.
     socket.on("state_changed", () => {
       socket.broadcast.emit("refresh_data");
     });
-
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
     });
