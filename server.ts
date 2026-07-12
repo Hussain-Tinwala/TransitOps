@@ -27,15 +27,6 @@ app.prepare().then(() => {
     addTrailingSlash: false,
   });
 
-  server.on("upgrade", (req, socket, head) => {
-    const { pathname } = parse(req.url!, true);
-    if (pathname === "/api/socket") {
-      io.engine.handleUpgrade(req, socket, head);
-    } else {
-      socket.destroy();
-    }
-  });
-
   io.on("connection", (socket) => {
     console.log("Client connected to Socket.io:", socket.id);
 
