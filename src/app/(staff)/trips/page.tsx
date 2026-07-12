@@ -123,9 +123,10 @@ export default function TripDispatcherPage() {
       body: JSON.stringify({ action: "COMPLETE", finalOdometer: odo, fuelConsumed: fuel })
     });
     
+    // 1. Emit event to all clients
     socket?.emit("state_changed");
-    router.refresh();
-    // Refresh local data to pull freed vehicles back into the dropdown
+    
+    // 2. Refresh local state
     window.location.reload(); 
   };
 
@@ -138,8 +139,10 @@ export default function TripDispatcherPage() {
       body: JSON.stringify({ action: "CANCEL" })
     });
     
+    // 1. Emit event to all clients
     socket?.emit("state_changed");
-    router.refresh();
+    
+    // 2. Refresh local state
     window.location.reload();
   };
 

@@ -24,6 +24,16 @@ app.prepare().then(() => {
 
   const io = new Server(server, {
     path: "/api/socket",
+    addTrailingSlash: false,
+  });
+
+  server.on("upgrade", (req, socket, head) => {
+    const { pathname } = parse(req.url!, true);
+    if (pathname === "/api/socket") {
+      io.engine.handleUpgrade(req, socket, head);
+    } else {
+      socket.destroy();
+    }
   });
 
   io.on("connection", (socket) => {
