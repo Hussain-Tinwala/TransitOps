@@ -2,11 +2,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSocket } from "@/components/SocketProvider";
 import { AlertCircle, CheckCircle2, MapPin, Truck, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function TripDispatcherPage() {
   const router = useRouter();
+  const socket = useSocket();
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,7 @@ export default function TripDispatcherPage() {
       setSubmitError(data.error);
       setIsSubmitting(false);
     } else {
+      socket?.emit("state_changed");
       // Reset form and refresh data (in a real app, Socket.io handles this live, which we add in Step 7)
       setSource("");
       setDestination("");
