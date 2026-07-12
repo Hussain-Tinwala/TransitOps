@@ -62,38 +62,45 @@ export default function TripDispatcherPage() {
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const res = await fetch("/api/trips", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        source,
-        destination,
-        cargoWeight: weight,
-        plannedDistance: Number(plannedDistance),
-        vehicleId: selectedVehicleId,
-        driverId: selectedDriverId,
-      }),
-    });
+    try {
+      const res = await fetch("/api/trips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source,
+          destination,
+          cargoWeight: weight,
+          plannedDistance: Number(plannedDistance),
+          vehicleId: selectedVehicleId,
+          driverId: selectedDriverId,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      setSubmitError(data.error);
-      setIsSubmitting(false);
-    } else {
-      socket?.emit("state_changed");
-      // Reset form and refresh data (in a real app, Socket.io handles this live, which we add in Step 7)
-      setSource("");
-      setDestination("");
-      setCargoWeight("");
-      setPlannedDistance("");
-      setSelectedVehicleId("");
-      setSelectedDriverId("");
-      setIsSubmitting(false);
-      router.refresh(); 
-      // Remove used vehicle/driver from local state temporarily until socket updates
-      setVehicles(prev => prev.filter(v => v.id !== selectedVehicleId));
-      setDrivers(prev => prev.filter(d => d.id !== selectedDriverId));
+      if (!res.ok) {
+        setSubmitError(data.error);
+      } else {
+        setSource("");
+        setDestination("");
+        setCargoWeight("");
+        setPlannedDistance("");
+        setSelectedVehicleId("");
+        setSelectedDriverId("");
+        
+        // Remove used vehicle/driver locally to prevent double-booking before socket syncs
+        setVehicles(prev => prev.filter(v => v.id !== selectedVehicleId));
+        setDrivers(prev => prev.filter(d => d.id !== selectedDriverId));
+
+        // CRITICAL: Trigger the global real-time update
+        socket?.emit("state_changed");
+        router.refresh(); 
+      }
+    } catch (err) {
+      setSubmitError("Network error occurred.");
+    } finally {
+      // CRITICAL: Unlocks the button whether it succeeds or fails
+      setIsSubmitting(false); 
     }
   };
 
