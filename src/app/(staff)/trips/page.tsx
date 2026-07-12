@@ -23,14 +23,24 @@ export default function TripDispatcherPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Fetch available resources on mount
     Promise.all([
-      fetch("/api/vehicles").then(res => res.json()),
-      fetch("/api/drivers").then(res => res.json())
-    ]).then(([vehiclesData, driversData]) => {
-      // Filter strictly for AVAILABLE status per Business Rules
+      fetch("/api/vehicles").then(res => {
+        if (!res.ok) throw new Error("Failed to fetch vehicles");
+        return res.json();
+      }),
+      fetch("/api/drivers").then(res => {
+        if (!res.ok) throw new Error("Failed to fetch drivers");
+        return res.json();
+      })
+    ])
+    .then(([vehiclesData, driversData]) => {
       setVehicles(vehiclesData.filter((v: any) => v.status === "AVAILABLE"));
       setDrivers(driversData.filter((d: any) => d.status === "AVAILABLE" && new Date(d.licenseExpiryDate) > new Date()));
+      setLoading(false);
+    })
+    .catch(error => {
+      console.error(error);
+      setSubmitError("Failed to load resources. Please ensure API routes exist.");
       setLoading(false);
     });
   }, []);
