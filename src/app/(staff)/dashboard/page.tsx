@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/components/SocketProvider";
-import { Activity, Truck, AlertCircle, Clock } from "lucide-react";
+import { Activity, Truck, Filter } from "lucide-react";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -12,8 +12,20 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Filter States
+  const [regionFilter, setRegionFilter] = useState("ALL");
+  const [typeFilter, setTypeFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   const fetchDashboardData = () => {
-    fetch("/api/dashboard")
+    // Pass filters as query parameters
+    const query = new URLSearchParams({
+      region: regionFilter,
+      type: typeFilter,
+      status: statusFilter
+    }).toString();
+
+    fetch(`/api/dashboard?${query}`)
       .then(res => res.json())
       .then(data => {
         setStats(data);
@@ -21,22 +33,17 @@ export default function DashboardPage() {
       });
   };
 
+  // Re-fetch when filters change
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [regionFilter, typeFilter, statusFilter]);
 
-  // REAL-TIME MAGIC: When ANY client updates the database, re-fetch the dashboard
+  // Real-time socket sync
   useEffect(() => {
     if (!socket) return;
-    
-    socket.on("refresh_data", () => {
-      fetchDashboardData();
-    });
-
-    return () => {
-      socket.off("refresh_data");
-    };
-  }, [socket]);
+    socket.on("refresh_data", () => fetchDashboardData());
+    return () => { socket.off("refresh_data"); };
+  }, [socket, regionFilter, typeFilter, statusFilter]);
 
   if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading live fleet metrics...</div>;
 
@@ -55,16 +62,36 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      {/* THE FILTERS ODOO REQUESTED */}
+      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+        <div className="flex items-center gap-2 text-slate-700 font-medium">
+          <Filter className="w-4 h-4" /> Filters:
+        </div>
+        <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} className="p-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500">
+          <option value="ALL">All Regions</option>
+          <option value="North">North</option>
+          <option value="South">South</option>
+        </select>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="p-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500">
+          <option value="ALL">All Vehicle Types</option>
+          <option value="Van">Van</option>
+          <option value="Heavy Truck">Heavy Truck</option>
+        </select>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="p-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500">
+          <option value="ALL">All Statuses</option>
+          <option value="AVAILABLE">Available</option>
+          <option value="ON_TRIP">On Trip</option>
+          <option value="IN_SHOP">In Shop</option>
+        </select>
+      </div>
+
       {/* KPI Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Active Vehicles", val: stats.totalVehicles - stats.vehicleStatusDistribution.RETIRED },
-          { label: "Available Vehicles", val: stats.availableVehicles },
+          { label: "Filtered Vehicles", val: stats.totalVehicles },
+          { label: "Available", val: stats.availableVehicles },
           { label: "Drivers On Duty", val: stats.driversOnDuty },
           { label: "Fleet Utilization", val: `${stats.fleetUtilization.toFixed(1)}%` },
-          { label: "Vehicles In Shop", val: stats.inMaintenance },
-          { label: "Active Trips", val: stats.activeTrips },
-          { label: "Pending Trips", val: stats.pendingTrips },
         ].map((kpi, i) => (
           <div key={i} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between">
             <h3 className="text-slate-500 text-sm font-medium">{kpi.label}</h3>
@@ -115,7 +142,7 @@ export default function DashboardPage() {
         {/* CSS Native Status Chart */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col">
           <div className="flex items-center gap-2 font-semibold text-slate-800 mb-6">
-            <Truck className="w-4 h-4 text-amber-500" /> Vehicle Status Distribution
+            <Truck className="w-4 h-4 text-amber-500" /> Filtered Status Distribution
           </div>
           
           <div className="space-y-4 flex-1">

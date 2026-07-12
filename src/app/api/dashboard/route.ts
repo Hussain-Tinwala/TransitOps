@@ -2,15 +2,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Extract filter parameters from the URL
+    const { searchParams } = new URL(req.url);
+    const region = searchParams.get("region");
+    const type = searchParams.get("type");
+    const status = searchParams.get("status");
+
+    // Build the dynamic filter object for Prisma
+    const vehicleWhere: any = { isActive: true };
+    if (region && region !== "ALL") vehicleWhere.region = region;
+    if (type && type !== "ALL") vehicleWhere.type = type;
+    if (status && status !== "ALL") vehicleWhere.status = status;
+
     const [vehicles, drivers, trips] = await Promise.all([
-      prisma.vehicle.findMany({ where: { isActive: true } }),
+      prisma.vehicle.findMany({ where: vehicleWhere }),
       prisma.driver.findMany({ where: { isActive: true } }),
       prisma.trip.findMany({
         include: { vehicle: true, driver: true },
         orderBy: { createdAt: "desc" },
-        take: 5 // Get only recent activity for the dashboard
+        take: 5
       })
     ]);
 
