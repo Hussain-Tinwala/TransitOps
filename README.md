@@ -1,14 +1,39 @@
-# TransitOps — Smart Transport Operations Platform
+<div align="center">
 
-> A modern fleet operations platform that digitizes dispatch, vehicle, driver, maintenance, fuel, and operational cost management with real-time synchronization and server-side business rule enforcement.
+<!-- Frontend Stack -->
+<img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+<img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+<img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+<img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
 
-> **Built for Odoo Hackathon 2026 — Virtual Round (8-Hour Solo Build)**
+<br />
 
+<!-- Backend & Real-time -->
+<img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+<img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="Socket.io" />
+<img src="https://img.shields.io/badge/NextAuth.js-000000?style=for-the-badge&logo=nextauth&logoColor=white" alt="NextAuth" />
+
+<br />
+
+<!-- Database & Infrastructure -->
+<img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+<img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
+<img src="https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
+
+<br />
+<br />
+
+# 🚚 TransitOps | Smart Transport Operations Platform
+### Centralized Fleet Lifecycle & Dispatch Management
+
+<br />
+
+**A robust, enterprise-grade logistics platform engineered for real-time dispatch, automated asset maintenance, and data-driven financial analytics.**
+
+</div>
 ---
 
 ## 🌐 Live Demo
-
-**Application:** `https://your-demo-link.com`
 
 **Demo Video:** `https://your-demo-video-link.com`
 
@@ -56,47 +81,73 @@ The project was intentionally designed around the evaluation priorities specifie
 
 # Screenshots
 
-> Replace these placeholders with actual screenshots.
 
 ## Login Screen
 
-```md
-![Login Screen](./docs/screens/login.png)
-```
+
+![Login Screen](/output/1.png)
 
 ---
 
-## Dispatcher Dashboard
+## Fleet Manager Dashboard
 
-```md
-![Dashboard](./docs/screens/dashboard.png)
-```
 
----
+![Dashboard](/output/2.png)
 
-## Trip Dispatcher
-
-```md
-![Trip Dispatcher](./docs/screens/trip-dispatcher.png)
-```
 
 ---
 
 ## Vehicle Registry
 
-```md
-![Vehicle Registry](./docs/screens/vehicles.png)
-```
+
+![Vehicle Registry](/output/3.png)
+
 
 ---
 
-## Reports
+## Maintenance Page
 
-```md
-![Reports](./docs/screens/reports.png)
-```
+
+![Maintenance Page](/output/4.png)
+
 
 ---
+
+## Dispatcher Dashboard
+
+
+![Dashboard](/output/5.png)
+
+![Dashboard](/output/6.png)
+
+
+---
+
+## Safety Officer
+
+
+![Safety Officer](/output/7.png)
+
+
+---
+
+## Financial Analyst - Fuel & Expenses
+
+
+![Financial Analyst](/output/8.png)
+
+
+---
+
+## Financial Analyst - Reports
+
+
+![Financial Analyst](/output/9.png)
+
+
+
+---
+
 
 # Technology Stack
 
@@ -119,21 +170,13 @@ The project was intentionally designed around the evaluation priorities specifie
 
 # System Architecture
 
-> Insert architecture diagram here.
 
-```md
 ![TransitOps Architecture](/architecture/system_architecture.png)
 
-Alt:
-Four-layer architecture showing Input Layer, Core Dispatch Engine,
-Real-Time Sync Pipeline, PostgreSQL Database through Prisma ORM,
-Role-Based Access Control and Reporting Engine connected by
-Next.js App Router.
-```
 
 ---
 
-# Data Flow Architecture
+# Data Flow
 
 ```mermaid
 
@@ -767,7 +810,7 @@ TransitOps/
 ## Clone
 
 ```bash
-git clone https://github.com/yourusername/transitops.git
+git clone https://github.com/Hussain-Tinwala/TransitOps
 
 cd transitops
 ```
