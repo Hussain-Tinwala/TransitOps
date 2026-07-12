@@ -68,6 +68,7 @@ export default function FinancesPage() {
   };
 
   // Calculate Total Operational Cost (Fuel + Maintenance) per vehicle
+  // NOTE: Miscellaneous expenses (tolls) are intentionally excluded from this specific formula per business rules.
   const calculateOperationalCosts = () => {
     return vehicles.map(v => {
       const vFuel = fuelLogs.filter(f => f.vehicleId === v.id).reduce((sum, f) => sum + Number(f.cost), 0);
@@ -140,7 +141,7 @@ export default function FinancesPage() {
         {/* Right Column: Dynamic KPIs and Tables */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Operational Cost KPI Box (Mandatory Requirement) */}
+          {/* Operational Cost KPI Box */}
           <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm text-white">
             <h3 className="font-semibold flex items-center gap-2 mb-4 text-slate-300">
               <Calculator className="w-5 h-5 text-amber-500" /> 
@@ -165,7 +166,7 @@ export default function FinancesPage() {
             </div>
           </div>
 
-          {/* Recent Logs Tables */}
+          {/* Recent Fuel Logs Table */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-slate-800 flex items-center gap-2">
               <Droplets className="w-4 h-4 text-blue-500" /> Recent Fuel Logs
@@ -188,6 +189,38 @@ export default function FinancesPage() {
                     <td className="p-3 font-medium text-slate-900">${Number(log.cost).toFixed(2)}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Recent Expenses Table (Added this to fix the UI!) */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-slate-800 flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-emerald-500" /> Recent Misc Expenses
+            </div>
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-white text-slate-500">
+                <tr>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Vehicle</th>
+                  <th className="p-3">Type</th>
+                  <th className="p-3">Cost</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {expenses.slice(0, 3).map((exp) => (
+                  <tr key={exp.id}>
+                    <td className="p-3 text-slate-600">{new Date(exp.date).toLocaleDateString()}</td>
+                    <td className="p-3 font-medium text-slate-900">{exp.vehicle?.registrationNumber || 'N/A'}</td>
+                    <td className="p-3 text-slate-600">{exp.type}</td>
+                    <td className="p-3 font-medium text-slate-900">${Number(exp.amount).toFixed(2)}</td>
+                  </tr>
+                ))}
+                {expenses.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="p-4 text-center text-gray-400">No recent expenses found.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
