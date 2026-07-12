@@ -20,6 +20,8 @@ export default function TripDispatcherPage() {
   const [plannedDistance, setPlannedDistance] = useState("");
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   const [selectedDriverId, setSelectedDriverId] = useState("");
+
+  const [activeTrips, setActiveTrips] = useState<any[]>([]);
   
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,11 +35,16 @@ export default function TripDispatcherPage() {
       fetch("/api/drivers").then(res => {
         if (!res.ok) throw new Error("Failed to fetch drivers");
         return res.json();
+      }),
+      fetch("/api/trips").then(res => {
+        if (!res.ok) throw new Error("Failed to fetch trips");
+        return res.json();
       })
     ])
-    .then(([vehiclesData, driversData]) => {
+    .then(([vehiclesData, driversData, tripsData]) => {
       setVehicles(vehiclesData.filter((v: any) => v.status === "AVAILABLE"));
       setDrivers(driversData.filter((d: any) => d.status === "AVAILABLE" && new Date(d.licenseExpiryDate) > new Date()));
+      setActiveTrips(tripsData.filter((t: any) => t.status === "DISPATCHED"));
       setLoading(false);
     })
     .catch(error => {
@@ -102,6 +109,38 @@ export default function TripDispatcherPage() {
       // CRITICAL: Unlocks the button whether it succeeds or fails
       setIsSubmitting(false); 
     }
+  };
+
+  const handleComplete = async (tripId: string) => {
+    const odo = prompt("Enter final odometer reading (km):");
+    if (!odo) return;
+    const fuel = prompt("Enter total fuel consumed (Liters):");
+    if (!fuel) return;
+
+    await fetch(`/api/trips/${tripId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "COMPLETE", finalOdometer: odo, fuelConsumed: fuel })
+    });
+    
+    socket?.emit("state_changed");
+    router.refresh();
+    // Refresh local data to pull freed vehicles back into the dropdown
+    window.location.reload(); 
+  };
+
+  const handleCancel = async (tripId: string) => {
+    if (!confirm("Are you sure you want to cancel this trip?")) return;
+
+    await fetch(`/api/trips/${tripId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "CANCEL" })
+    });
+    
+    socket?.emit("state_changed");
+    router.refresh();
+    window.location.reload();
   };
 
   if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading dispatch terminal...</div>;
@@ -202,6 +241,53 @@ export default function TripDispatcherPage() {
           </button>
         </div>
       </form>
+
+      {/* Active Trips Management */}
+      <div className="mt-12 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100 font-semibold text-slate-800">
+          Manage Active Trips
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 text-slate-500">
+              <tr>
+                <th className="p-4">Route</th>
+                <th className="p-4">Vehicle</th>
+                <th className="p-4">Driver</th>
+                <th className="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {activeTrips.map((trip: any) => (
+                <tr key={trip.id} className="hover:bg-gray-50">
+                  <td className="p-4 font-medium text-slate-900">{trip.source} → {trip.destination}</td>
+                  <td className="p-4 text-slate-600">{trip.vehicle.registrationNumber}</td>
+                  <td className="p-4 text-slate-600">{trip.driver.name}</td>
+                  <td className="p-4 text-right space-x-3">
+                    <button 
+                      onClick={() => handleComplete(trip.id)}
+                      className="text-emerald-600 hover:text-emerald-700 font-medium"
+                    >
+                      Complete
+                    </button>
+                    <button 
+                      onClick={() => handleCancel(trip.id)}
+                      className="text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {activeTrips.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-gray-400">No active trips requiring management.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
